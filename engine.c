@@ -382,6 +382,12 @@ int child_fn(void *arg)
         return 1;
     }
 
+	dup2(container->stdout_pipe[1], STDOUT_FILENO);
+	dup2(container->stderr_pipe[1], STDERR_FILENO);
+
+	close(container->stdout_pipe[0]);
+	close(container->stderr_pipe[0]);
+
     // EXEC directly → becomes PID 1
     execl("/bin/sh", "/bin/sh", NULL);
 
