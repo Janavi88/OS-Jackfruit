@@ -47,6 +47,19 @@
 #define LOG_BUFFER_CAPACITY 16
 #define DEFAULT_SOFT_LIMIT (40UL << 20)
 #define DEFAULT_HARD_LIMIT (64UL << 20)
+#include <pthread.h>
+
+#define BUFFER_SIZE 10
+#define LOG_MSG_SIZE 256
+
+typedef struct {
+    char data[BUFFER_SIZE][LOG_MSG_SIZE];
+    int in, out, count;
+
+    pthread_mutex_t lock;
+    pthread_cond_t not_full;
+    pthread_cond_t not_empty;
+} buffer_t;
 
 typedef enum {
     CMD_SUPERVISOR = 0,
@@ -76,6 +89,10 @@ typedef struct container_record {
     int exit_signal;
     char log_path[PATH_MAX];
     struct container_record *next;
+    int stdout_pipe[2];
+    int stderr_pipe[2];
+    char log_file[128];
+    buffer_t log_buffer;
 } container_record_t;
 
 typedef struct {
@@ -226,7 +243,7 @@ static const char *state_to_string(container_state_t state)
     case CONTAINER_RUNNING:
         return "running";
     case CONTAINER_STOPPED:
-        return "stopped";
+	return "stopped";
     case CONTAINER_KILLED:
         return "killed";
     case CONTAINER_EXITED:
