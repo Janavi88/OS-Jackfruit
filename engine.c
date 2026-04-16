@@ -145,6 +145,12 @@ typedef struct {
     container_record_t *containers;
 } supervisor_ctx_t;
 
+void init_buffer(buffer_t *b) {
+    b->in = b->out = b->count = 0;
+    pthread_mutex_init(&b->lock, NULL);
+    pthread_cond_init(&b->not_full, NULL);
+    pthread_cond_init(&b->not_empty, NULL);
+}
 static void usage(const char *prog)
 {
     fprintf(stderr,
@@ -380,6 +386,11 @@ int child_fn(void *arg)
     execl("/bin/sh", "/bin/sh", NULL);
 
     perror("exec failed");
+    pipe(container->stdout_pipe);
+    pipe(container->stderr_pipe);
+    init_buffer(&container->log_buffer);
+    sprintf(container->log_file, "log_%s.txt",container->id);
+
     return 1;
 }
 int register_with_monitor(int monitor_fd,
