@@ -19,6 +19,10 @@ modules.order
 # Root filesystems
 rootfs-base/
 rootfs-*/
+*.o
+*.ko
+*.out
+*.log
 *.tar.gz
 
 # Logs
