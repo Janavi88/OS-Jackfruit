@@ -596,7 +596,7 @@ static int run_supervisor(const char *rootfs)
                               stack + STACK_SIZE,
                               CLONE_NEWPID | CLONE_NEWUTS | CLONE_NEWNS | SIGCHLD,
                               &config);
-
+            container->pid=pid;
             if (pid < 0) {
                 perror("clone failed");
             } else {
@@ -609,7 +609,15 @@ static int run_supervisor(const char *rootfs)
                 c->state = CONTAINER_RUNNING;
                 c->next = ctx.containers;
                 ctx.containers = c;
-            }
+            } 
+
+	    close(container->stdout_pipe[1]);
+	    close(container->stderr_pipe[1]);
+
+	    pthread_t prod, cons;
+
+	pthread_create(&prod, NULL, producer, container);
+	pthread_create(&cons, NULL, consumer, container);
         }
 
         else if (req.kind == CMD_PS) {
