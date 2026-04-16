@@ -399,6 +399,65 @@ int child_fn(void *arg)
 
     return 1;
 }
+
+
+
+
+
+void* consumer(void* arg) {
+    container_t* c = (container_t*)arg;
+
+    FILE* fp = fopen(c->log_file, "a");
+
+    while (1) {
+        pthread_mutex_lock(&c->log_buffer.lock);
+
+        while (c->log_buffer.count == 0)
+            pthread_cond_wait(&c->log_buffer.not_empty, &c->log_buffer.lock);
+
+        char msg[LOG_MSG_SIZE];
+        strcpy(msg, c->log_buffer.data[c->log_buffer.out]);
+
+        c->log_buffer.out = (c->log_buffer.out + 1) % BUFFER_SIZE;
+        c->log_buffer.count--;
+
+        pthread_cond_signal(&c->log_buffer.not_full);
+        pthread_mutex_unlock(&c->log_buffer.lock);
+
+        fprintf(fp, "%s", msg);
+        fflush(fp);
+    }
+
+    fclose(fp);
+    return NULL;
+}
+
+
+void* producer(void* arg) {
+    container_t* c = (container_t*)arg;
+    char buf[LOG_MSG_SIZE];
+
+    while (1) {
+        int n = read(c->stdout_pipe[0], buf, sizeof(buf)-1);
+        if (n <= 0) break;
+
+        buf[n] = '\0';
+
+        pthread_mutex_lock(&c->log_buffer.lock);
+
+        while (c->log_buffer.count == BUFFER_SIZE)
+            pthread_cond_wait(&c->log_buffer.not_full, &c->log_buffer.lock);
+
+        strcpy(c->log_buffer.data[c->log_buffer.in], buf);
+        c->log_buffer.in = (c->log_buffer.in + 1) % BUFFER_SIZE;
+        c->log_buffer.count++;
+
+        pthread_cond_signal(&c->log_buffer.not_empty);
+        pthread_mutex_unlock(&c->log_buffer.lock);
+    }
+
+    return NULL;
+}
 int register_with_monitor(int monitor_fd,
                           const char *container_id,
                           pid_t host_pid,
