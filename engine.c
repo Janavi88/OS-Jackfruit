@@ -338,10 +338,33 @@ void *logging_thread(void *arg)
  */
 int child_fn(void *arg)
 {
-    (void)arg;
+    child_config_t *config = (child_config_t *)arg;
+
+    // Become root of filesystem
+    if (chroot(config->rootfs) != 0) {
+        perror("chroot failed");
+        return 1;
+    }
+
+    if (chdir("/") != 0) {
+        perror("chdir failed");
+        return 1;
+    }
+
+    // Mount proc
+    mkdir("/proc", 0555);
+
+    if (mount("proc", "/proc", "proc", 0, NULL) != 0) {
+        perror("mount /proc failed");
+        return 1;
+    }
+
+    // EXEC directly → becomes PID 1
+    execl("/bin/sh", "/bin/sh", NULL);
+
+    perror("exec failed");
     return 1;
 }
-
 int register_with_monitor(int monitor_fd,
                           const char *container_id,
                           pid_t host_pid,
@@ -395,6 +418,7 @@ static int run_supervisor(const char *rootfs)
     memset(&ctx, 0, sizeof(ctx));
     ctx.server_fd = -1;
     ctx.monitor_fd = -1;
+    ctx.containers = NULL;
 
     rc = pthread_mutex_init(&ctx.metadata_lock, NULL);
     if (rc != 0) {
@@ -411,22 +435,144 @@ static int run_supervisor(const char *rootfs)
         return 1;
     }
 
-    /*
-     * TODO:
-     *   1) open /dev/container_monitor
-     *   2) create the control socket / FIFO / shared-memory channel
-     *   3) install SIGCHLD / SIGINT / SIGTERM handling
-     *   4) spawn the logger thread
-     *   5) enter the supervisor event loop
-     */
-    fprintf(stderr, "Supervisor mode not implemented yet for base-rootfs: %s\n", rootfs);
+    signal(SIGCHLD, SIG_IGN);
 
-    bounded_buffer_begin_shutdown(&ctx.log_buffer);
-    bounded_buffer_destroy(&ctx.log_buffer);
-    pthread_mutex_destroy(&ctx.metadata_lock);
-    return 1;
+    printf("Supervisor started...\n");
+
+    // =========================
+    // SOCKET SETUP
+    // =========================
+    int server_fd;
+    struct sockaddr_un addr;
+
+    server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (server_fd < 0) {
+        perror("socket");
+        return 1;
+    }
+
+    unlink(CONTROL_PATH);
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strcpy(addr.sun_path, CONTROL_PATH);
+
+    if (bind(server_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        perror("bind");
+        return 1;
+    }
+
+    if (listen(server_fd, 5) < 0) {
+        perror("listen");
+        return 1;
+    }
+
+    printf("Supervisor listening on %s\n", CONTROL_PATH);
+
+    // =========================
+    // MAIN LOOP
+    // =========================
+    while (1) {
+        int client_fd = accept(server_fd, NULL, NULL);
+        if (client_fd < 0) {
+            perror("accept");
+            continue;
+        }
+
+        control_request_t req;
+        memset(&req, 0, sizeof(req));
+
+        read(client_fd, &req, sizeof(req));
+
+        printf("Received command: %d for container %s\n",
+               req.kind, req.container_id);
+
+        // =========================
+        // HANDLE COMMANDS
+        // =========================
+
+        if (req.kind == CMD_START) {
+
+            child_config_t config;
+            strcpy(config.rootfs, req.rootfs);
+            strcpy(config.command, req.command);
+
+            char *stack = malloc(STACK_SIZE);
+
+            pid_t pid = clone(child_fn,
+                              stack + STACK_SIZE,
+                              CLONE_NEWPID | CLONE_NEWUTS | CLONE_NEWNS | SIGCHLD,
+                              &config);
+
+            if (pid < 0) {
+                perror("clone failed");
+            } else {
+                printf("Started container %s with PID %d\n",
+                       req.container_id, pid);
+
+                container_record_t *c = malloc(sizeof(container_record_t));
+                strcpy(c->id, req.container_id);
+                c->host_pid = pid;
+                c->state = CONTAINER_RUNNING;
+                c->next = ctx.containers;
+                ctx.containers = c;
+            }
+        }
+
+        else if (req.kind == CMD_PS) {
+
+            container_record_t *curr = ctx.containers;
+
+            printf("=== Containers ===\n");
+
+            while (curr) {
+                printf("ID: %s | PID: %d | State: %s\n",
+                       curr->id,
+                       curr->host_pid,
+                       state_to_string(curr->state));
+                curr = curr->next;
+            }
+        }
+
+        else if (req.kind == CMD_STOP) {
+
+            container_record_t *curr = ctx.containers;
+
+            while (curr) {
+                if (strcmp(curr->id, req.container_id) == 0) {
+
+                    kill(curr->host_pid, SIGKILL);
+                    curr->state = CONTAINER_KILLED;
+
+                    printf("Stopped container %s\n", curr->id);
+                    break;
+                }
+                curr = curr->next;
+            }
+        }
+
+        // =========================
+        // RESPONSE
+        // =========================
+        control_response_t res;
+        res.status = 0;
+
+        if (req.kind == CMD_START)
+		strcpy(res.message, "Container started");
+        else if (req.kind == CMD_PS)
+            strcpy(res.message, "Listed containers");
+        else if (req.kind == CMD_STOP)
+            strcpy(res.message, "Container stopped");
+        else
+            strcpy(res.message, "OK");
+
+        write(client_fd, &res, sizeof(res));
+
+        close(client_fd);
+    }
+
+    return 0;
 }
-
 /*
  * TODO:
  * Implement the client-side control request path.
@@ -437,10 +583,62 @@ static int run_supervisor(const char *rootfs)
  */
 static int send_control_request(const control_request_t *req)
 {
-    (void)req;
-    fprintf(stderr, "Control-plane client path not implemented.\n");
-    return 1;
+    int sock;
+    struct sockaddr_un addr;
+
+    sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sock < 0) {
+        perror("socket");
+        return 1;
+    }
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strcpy(addr.sun_path, CONTROL_PATH);
+
+    if (connect(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        perror("connect");
+        return 1;
+    }
+
+    write(sock, req, sizeof(*req));
+
+    control_response_t res;
+    read(sock, &res, sizeof(res));
+
+    printf("Response: %s\n", res.message);
+
+    close(sock);
+    return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 static int cmd_start(int argc, char *argv[])
 {
@@ -558,8 +756,7 @@ int main(int argc, char *argv[])
             return 1;
         }
         return run_supervisor(argv[2]);
-    }
-
+    }	
     if (strcmp(argv[1], "start") == 0)
         return cmd_start(argc, argv);
 
