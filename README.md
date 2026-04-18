@@ -35,17 +35,13 @@ sudo ./engine run alpha ../rootfs-alpha /bin/sh
 ---
 ### 1. Multi-container Execution
 
-Two containers (alpha and beta) were executed showing multiple running instances.
-
-
-Shows container shells running at the same time.
+#### Two containers (alpha and beta) were executed showing multiple running instances.Shows container shells running at the same time.
 ---
 ### 2. Metadata Tracking (ps)
 ```bash
 ./engine ps
 ```
-
-Shows both containers (alpha, beta) in running state.
+#### Shows both containers (alpha, beta) in running state.
 ---
 ### 3. Logging
 ```bash
@@ -54,45 +50,47 @@ cat container.log
 #### Output:
 ```bash 
 hello
-
 ```
-Container output ("hello") is successfully written into container.log.
+#### Container output ("hello") is successfully written into container.log.
 ---
 
 ### 4. CLI Execution
 ```bash
 sudo ./engine run alpha ../rootfs-alpha dummy
 ```
-
-CLI command executes successfully without errors.
+#### CLI command executes successfully without errors.
 ---
 
 ### 5. Kernel Logs (Soft-limit / Module Activity)
+```bash
 sudo dmesg | tail
+```
 
-
-Shows kernel module messages and system activity.
+#### Shows kernel module messages and system activity.
 ---
 ### 6. Memory Behavior (Hard-limit Test)
-./memory_hog
+
+```bash
 sudo dmesg | tail
+```
 
-
-Memory allocation increases step-by-step showing workload behavior.
+#### Memory allocation increases step-by-step showing workload behavior.
 ---
 ### 7. Scheduling Experiment
+```bash
 nice -n 10 ./cpu_hog
 sudo nice -n -5 ./cpu_hog
 top
+```
 
-
-Processes are run with different priorities and observed using top.
+#### Processes are run with different priorities and observed using top.
 --- 
 ### 8. Clean Teardown
+```bash
 ps aux | grep engine
+```
 
-Cleanup:
-Shows process list ensuring no unwanted processes remain.
+#### Shows process list ensuring no unwanted processes remain.
 --- 
 
 ## 4.Engineering Analysis
@@ -168,3 +166,4 @@ The experiment still demonstrates how Linux scheduling differentiates process pr
 ## Conclusion
 
 This project demonstrates core OS concepts such as process creation, filesystem isolation, logging, memory behavior, and scheduling using a simple container runtime.
+
