@@ -120,7 +120,7 @@ Kernel logs are used to observe behavior.
 
 Process priority is controlled using nice.
 Lower nice values provide higher scheduling priority.
-
+---
 ## 5.Design Decisions and Tradeoffs
 ### Isolation
 Used chroot()
