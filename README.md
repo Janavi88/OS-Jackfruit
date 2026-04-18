@@ -1,17 +1,22 @@
-Multi-Container Runtime (OS Project)
-👩‍💻 Team Information
-Name	           SRN
-Janavi Agrawal	PES1UG24AM120
-Harsh Agarwal	PES1UG24AM112
-⚙️ Build, Load and Run Instructions
-🔧 Build
+# Multi-Container Runtime (OS Project)
+
+## 👩‍💻 Team Information
+| Name            | SRN            |
+|-----------------|----------------|
+| Janavi Agrawal  | PES1UG24AM120  |
+| Harsh Agarwal   | PES1UG24AM112  |
+
+---
+
+## ⚙️ Build, Load and Run Instructions
+
+### 🔧 Build
+```bash
 cd boilerplate
 make
 📦 Load Kernel Module
 sudo insmod monitor.ko
-
-Verify:
-
+✅ Verify
 ls /dev/container_monitor
 🚀 Run Container
 sudo ./engine run alpha ../rootfs-alpha /bin/sh
@@ -20,13 +25,13 @@ sudo ./engine run alpha ../rootfs-alpha /bin/sh
 
 Two containers (alpha and beta) were executed showing multiple running instances.
 
-Multi-container
+Multi-container:
 Shows container shells running at the same time.
 
 2. Metadata Tracking (ps)
 ./engine ps
 
-PS
+PS:
 Shows both containers (alpha, beta) in running state.
 
 3. Logging
@@ -36,26 +41,26 @@ Output:
 
 hello
 
-Logging
+Logging:
 Container output ("hello") is successfully written into container.log.
 
 4. CLI Execution
 sudo ./engine run alpha ../rootfs-alpha dummy
 
-CLI
+CLI:
 CLI command executes successfully without errors.
 
 5. Kernel Logs (Soft-limit / Module Activity)
 sudo dmesg | tail
 
-Kernel Logs
+Kernel Logs:
 Shows kernel module messages and system activity.
 
 6. Memory Behavior (Hard-limit Test)
 ./memory_hog
 sudo dmesg | tail
 
-Memory
+Memory:
 Memory allocation increases step-by-step showing workload behavior.
 
 7. Scheduling Experiment
@@ -63,13 +68,13 @@ nice -n 10 ./cpu_hog
 sudo nice -n -5 ./cpu_hog
 top
 
-Scheduling
+Scheduling:
 Processes are run with different priorities and observed using top.
 
 8. Clean Teardown
 ps aux | grep engine
 
-Cleanup
+Cleanup:
 Shows process list ensuring no unwanted processes remain.
 
 🧠 Engineering Analysis
