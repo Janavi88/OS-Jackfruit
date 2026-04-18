@@ -152,15 +152,16 @@ top
 ```
 ---
 ###  Observations
-Process	Nice Value	Behavior
-cpu_hog	10	Runs with lower priority
-cpu_hog	-5	Attempted higher priority (permission limited)
+|Process  |	Nice Value	|  Behavior                                       |
+|---------|-------------|-------------------------------------------------|
+|cpu_hog	|10           |	Runs with lower priority                        |
+|cpu_hog	|-5           |	Attempted higher priority (permission limited)  |
 ---
 ###  Explanation
 
-Processes with lower nice values are intended to receive higher priority.
-However, setting negative nice values requires root privileges.
-The experiment still demonstrates how Linux scheduling differentiates process priorities.
+#### Processes with lower nice values are intended to receive higher priority.
+#### However, setting negative nice values requires root privileges.
+#### The experiment still demonstrates how Linux scheduling differentiates process priorities.
 
 ---
 ## Conclusion
