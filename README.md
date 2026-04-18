@@ -14,13 +14,16 @@
 ```bash
 cd boilerplate
 make
-### Load Kernel Module
+---
+
+####  Load Kernel Module
+```
 sudo insmod monitor.ko
 ✅ Verify
 ls /dev/container_monitor
 🚀 Run Container
 sudo ./engine run alpha ../rootfs-alpha /bin/sh
-📸 Demo with Screenshots
+ Demo with Screenshots
 1. Multi-container Execution
 
 Two containers (alpha and beta) were executed showing multiple running instances.
