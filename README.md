@@ -10,11 +10,11 @@
 
 ## ⚙️ Build, Load and Run Instructions
 
-### 🔧 Build
+###  Build
 ```bash
 cd boilerplate
 make
-📦 Load Kernel Module
+### Load Kernel Module
 sudo insmod monitor.ko
 ✅ Verify
 ls /dev/container_monitor
