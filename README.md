@@ -118,26 +118,41 @@ Kernel logs are used to observe behavior.
 
 ###  Scheduling Behavior
 
-Process priority is controlled using nice.
-Lower nice values provide higher scheduling priority.
+#### Process priority is controlled using nice.
+#### Lower nice values provide higher scheduling priority.
+
+
 ---
 ## 5.Design Decisions and Tradeoffs
 ### Isolation
-Used chroot()
-Tradeoff: less secure than namespaces
-Reason: simple and effective
+
+-Used chroot() 
+
+-Tradeoff: less secure than namespaces
+
+-Reason: simple and effective
+
 ### Supervisor
-Used simplified execution
-Tradeoff: limited control
-Reason: reduces complexity
+-Used simplified execution
+
+-Tradeoff: limited control
+
+-Reason: reduces complexity
+
 ###   Logging
-Used dup2()
-Tradeoff: no advanced buffering
-Reason: easy to implement
+-Used dup2()
+
+-Tradeoff: no advanced buffering
+
+-Reason: easy to implement
+
 ###   Kernel Monitor
-Used dmesg
-Tradeoff: no strict enforcement
-Reason: demonstrates kernel interaction
+-Used dmesg
+
+-Tradeoff: no strict enforcement
+
+-Reason: demonstrates kernel interaction
+
 ###   Scheduling
 #### Used nice
 #### Tradeoff: limited control over exact priority
