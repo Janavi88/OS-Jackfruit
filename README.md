@@ -139,9 +139,9 @@ Used dmesg
 Tradeoff: no strict enforcement
 Reason: demonstrates kernel interaction
 ###   Scheduling
-Used nice
-Tradeoff: limited control over exact priority
-Reason: simple way to demonstrate scheduling
+#### Used nice
+#### Tradeoff: limited control over exact priority
+#### Reason: simple way to demonstrate scheduling
 ---
 ## 6.Scheduler Experiment Results
 ### Commands Used
