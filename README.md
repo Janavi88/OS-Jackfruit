@@ -36,6 +36,7 @@ sudo ./engine run alpha ../rootfs-alpha /bin/sh
 ### 1. Multi-container Execution
 
 #### Two containers (alpha and beta) were executed showing multiple running instances.Shows container shells running at the same time.
+![multicontainer exe](https://github.com/Janavi88/OS-Jackfruit/blob/fdf14251653f505cb3a4ce381e847458627b3aaa/images/fig_1.png)
 ---
 ### 2. Metadata Tracking (ps)
 ```bash
