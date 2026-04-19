@@ -43,6 +43,7 @@ sudo ./engine run alpha ../rootfs-alpha /bin/sh
 ./engine ps
 ```
 #### Shows both containers (alpha, beta) in running state.
+![meta data tracking ](https://github.com/Janavi88/OS-Jackfruit/blob/e0a6771e3a8f61774848c7f70aca9e0b14c8cb49/images/fig_2.png)
 ---
 ### 3. Logging
 ```bash
@@ -53,6 +54,7 @@ cat container.log
 hello
 ```
 #### Container output ("hello") is successfully written into container.log.
+![cont op ](https://github.com/Janavi88/OS-Jackfruit/blob/e0a6771e3a8f61774848c7f70aca9e0b14c8cb49/images/fig_3.png)
 ---
 
 ### 4. CLI Execution
@@ -60,6 +62,7 @@ hello
 sudo ./engine run alpha ../rootfs-alpha dummy
 ```
 #### CLI command executes successfully without errors.
+![CLI](https://github.com/Janavi88/OS-Jackfruit/blob/e0a6771e3a8f61774848c7f70aca9e0b14c8cb49/images/fig_4.png)
 ---
 
 ### 5. Kernel Logs (Soft-limit / Module Activity)
@@ -68,6 +71,7 @@ sudo dmesg | tail
 ```
 
 #### Shows kernel module messages and system activity.
+![KERNEL_LOGS ](https://github.com/Janavi88/OS-Jackfruit/blob/e0a6771e3a8f61774848c7f70aca9e0b14c8cb49/images/fig_5.png)
 ---
 ### 6. Memory Behavior (Hard-limit Test)
 
@@ -76,6 +80,7 @@ sudo dmesg | tail
 ```
 
 #### Memory allocation increases step-by-step showing workload behavior.
+![MEM_BEH](https://github.com/Janavi88/OS-Jackfruit/blob/e0a6771e3a8f61774848c7f70aca9e0b14c8cb49/images/fig_6.png)
 ---
 ### 7. Scheduling Experiment
 ```bash
@@ -85,6 +90,7 @@ top
 ```
 
 #### Processes are run with different priorities and observed using top.
+![SCHE_EXP](https://github.com/Janavi88/OS-Jackfruit/blob/e0a6771e3a8f61774848c7f70aca9e0b14c8cb49/images/fig_7.png)
 --- 
 ### 8. Clean Teardown
 ```bash
@@ -92,6 +98,8 @@ ps aux | grep engine
 ```
 
 #### Shows process list ensuring no unwanted processes remain.
+![PRT8_1](https://github.com/Janavi88/OS-Jackfruit/blob/e0a6771e3a8f61774848c7f70aca9e0b14c8cb49/images/fig_8.png)
+![PRT_8_2](https://github.com/Janavi88/OS-Jackfruit/blob/e0a6771e3a8f61774848c7f70aca9e0b14c8cb49/images/fig_9.png)
 --- 
 
 ## 4.Engineering Analysis
